@@ -176,8 +176,7 @@ void mostrarRotaNcurses(Cidade *cidades, int *rota, int n) {
     destacarRota(pts, rota, n);
 
     mvprintw(1, 2, "Rota calculada");
-    mvprintw(2, 2, "Inicio: cidade %d", rota[0]);
-    mvprintw(3, 2, "Ultima antes de voltar: cidade %d", rota[n - 1]);
+    //mvprintw(2, 2, "Inicio: cidade %d", rota[0]);
     mvprintw(altura - 2, 2, "Pressione qualquer tecla para sair");
     refresh();
     getch();

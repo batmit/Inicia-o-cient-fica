@@ -1,7 +1,7 @@
 #ifndef CV_1_H
 #define CV_1_H
 
-#define CIDADES 6
+#define CIDADES 12
 #include <ncurses.h>
 
 typedef struct cidade Cidade;

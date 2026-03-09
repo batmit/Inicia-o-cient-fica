@@ -1,0 +1,27 @@
+-19.9167 -43.9345
+-19.9321 -44.0539
+-19.9683 -44.1983
+-19.4583 -44.2467
+-18.7564 -44.4308
+-18.2048 -45.2409
+-17.2222 -46.8744
+-19.5902 -46.9438
+-18.5789 -46.5183
+-19.7472 -47.9381
+-18.9186 -48.2772
+-18.9438 -46.9925
+
+
+//Referência das cidades
+0  Belo Horizonte
+1  Contagem
+2  Betim
+3  Sete Lagoas
+4  Curvelo
+5  Três Marias
+6  Paracatu
+7  Araxá
+8  Patos de Minas
+9  Uberaba
+10 Uberlândia
+11 Patrocínio
