@@ -1,0 +1,7 @@
+Função gulosa -> iniciamos com uma solução rudimentar, muito possivelmente não é a ótima.   
+    Para tal podemos sortear aleatoriamente os valores, entre outras formas
+
+Heurísticas construtivas -> Heurística do vizinho mais próximo, Heurística de Nemhauser e Bellmore, Heurística da Inserção mais Barata
+
+ - Heurística do Vizinho Mais próximo
+    A partir da cidade inical fixada, eu pego as cidades mais próximas de cada
