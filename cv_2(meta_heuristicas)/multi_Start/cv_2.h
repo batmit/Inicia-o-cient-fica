@@ -1,0 +1,37 @@
+#ifndef CV_2_H
+#define CV_2_H
+
+#define CIDADES 12
+#include <ncurses.h>
+
+typedef struct cidade Cidade;
+typedef struct {
+    int x;
+    int y;
+} PontoTela;
+
+void cacheiroViajante(Cidade* vetorCidades, int *caminho, double *n, int pos, int *resultadoFinal, double soma, double **matrizDistancia);
+double distanciaEuclidiana(double x1, double y1, double x2, double y2);
+void mostrarRotaNcurses(Cidade *cidades, int *rota, int n);
+void limitesMapa(Cidade *cidades, int n,double *minLat, double *maxLat,double *minLon, double *maxLon);
+
+PontoTela mapearCidadeTela(Cidade cidade,double minLat, double maxLat, double minLon, double maxLon,int largura, int altura,int margem);
+void desenharLinha(int x0, int y0, int x1, int y1, chtype ch);
+void branchAndBound(Cidade *vetorCidades, int nivel, int caminho[], double custoAtual, double **matrizDistancia, double *melhorCusto, int resultadoFinal[]);
+void desenharCidades(Cidade *cidades, PontoTela *pts, int n);
+void desenharRota(PontoTela *pts, int *rota, int n, int fecharCiclo);
+void destacarRota(PontoTela *pts, int *rota, int n);
+void animarRota(PontoTela *pts, int *rota, int n, int fecharCiclo);
+void desenharLinhaAnimada(int x0, int y0, int x1, int y1, chtype ch, int atraso);
+double calcularLimiteInferior(Cidade *vetorCidades, int caminho[], int nivel,
+                             double custoAtual, double **matrizDistancia);
+
+double multiStart(Cidade *vetorCidades,double **matrizDistancia, int *resultadoFinal);
+
+double vizinhoMaisProximo(Cidade *vetorCidades, double **matrizDistancia, int* resultadoFinal, int posicaoInicial);
+void twoopt(Cidade *vetorCidades, double **matrizDistancia, int *resultadoFinal);
+void inverterTrecho(int *rota, int inicio, int fim);
+double calcularCusto(double **matrizDistancia, int *resultado);
+
+
+#endif
