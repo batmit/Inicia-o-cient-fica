@@ -5,8 +5,7 @@
 #include<float.h>
 #include <ncurses.h>
 
-//Teremos a função gulosa que usa a heurística de Bellmore e Nemhauser para inicializar, e usa branch and bound para podar todas que forem maior do que o valor dela
-//Bellmore e Nemhauser
+//Teremos a função gulosa que usa a heurística de inserção mais barata para inicializar, e usa branch and bound para podar todas que forem maior do que o valor dela
 
 struct cidade{
 
