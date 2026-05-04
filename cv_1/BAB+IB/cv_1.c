@@ -17,9 +17,11 @@ struct cidade{
 
 
 int main(){
-
+    //vetor de cidades
     Cidade *vetorCidades = malloc(CIDADES* sizeof(Cidade));
+    //Vetor de inteiros que representa o caminho que estou percorrendo
     int *caminho = malloc(CIDADES * sizeof(int));
+    //vetor de inteiros que fica o resultado final
     int *resultadoFinal = malloc(CIDADES * sizeof(int));
 
     //Apenas lerei os valores e colocarei o identificador em cada Cidade
@@ -31,6 +33,7 @@ int main(){
         scanf("%lf", &vetorCidades[i].longitude);
     }
 
+    //calculo as distancias e coloco numa matriz
     double **matrizDistancia = malloc(CIDADES * sizeof(double*));
     for(int i = 0; i < CIDADES; i++){
 
@@ -43,7 +46,7 @@ int main(){
         }
     }
 
-    //terei que fixar a primeira posição da cidade, por questões de complexidad
+    //terei que fixar a primeira posição da cidade, por questões de complexidade
     caminho[0] = 0;
     vetorCidades[0].visitado = 1;
     double melhorCusto = heuristicaInsercaoBarata(vetorCidades, matrizDistancia, resultadoFinal);
@@ -94,6 +97,7 @@ double distanciaEuclidiana(double x1, double y1, double x2, double y2){
 //melhor custo deve ser iniciado com um valor muito alto
 void branchAndBound(Cidade *vetorCidades, int nivel, int caminho[], double custoAtual, double **matrizDistancia, double *melhorCusto, int resultadoFinal[]){
 
+    //se estiver cheio
     if(nivel == CIDADES){
         double custoTotal = custoAtual + matrizDistancia[caminho[nivel - 1]][caminho[0]];
 
@@ -139,6 +143,7 @@ void branchAndBound(Cidade *vetorCidades, int nivel, int caminho[], double custo
 double calcularLimiteInferior(Cidade *vetorCidades, int caminho[], int nivel, double custoAtual, double **matrizDistancia) {
     double limite = custoAtual;
 
+    //cidade antes da atual
     int ultimaCidade = caminho[nivel - 1];
 
     // menor saída da última cidade para alguma não visitada
@@ -195,17 +200,19 @@ double calcularLimiteInferior(Cidade *vetorCidades, int caminho[], int nivel, do
 double heuristicaInsercaoBarata(Cidade *vetorCidades, double **matrizDistancia, int *resultadoFinal){
 
     for(int i = 0; i < CIDADES; i++){
-
+        //coloco o vetor do resultado final como -1
         resultadoFinal[i] = -1;
 
     }
 
 
-    //Como nesse código eu preciso de um ciclo mínimo, no caso de 2 cidades, eu vou pegar a primeira e também a mais próxima da primeira
+    //Como nesse código eu preciso de um ciclo mínimo, no caso de 2 cidades, 
+    //eu vou pegar a primeira e também a mais próxima da primeira
     resultadoFinal[0] = 0;
     vetorCidades[0].visitado = 1;
     double menosDist = matrizDistancia[0][1];
     int cidade = 1;
+    //apenas  acho a cidade mais proxima da primeira
     for(int i = 2; i < CIDADES; i++){
 
         if(matrizDistancia[0][i] < menosDist){
@@ -220,22 +227,26 @@ double heuristicaInsercaoBarata(Cidade *vetorCidades, double **matrizDistancia, 
     vetorCidades[cidade].visitado = 1;
     resultadoFinal[1] = cidade;
     int tamCiclo = 2;
+    //coloco a cidade 0 e a mais proxima dela no ciclo e começo
 
     //Enquanto o ciclo for menor que o numero de cidades total
     while(tamCiclo < CIDADES){
 
+        //variáveis para eu achar a melhor cidade na melhor posição
         int melhorCidade = -1;
         int melhorPosicao = -1;
         double melhorDelta = DBL_MAX;
 
         for(int k = 0; k < CIDADES; k++){
 
+            //se não tiver sido visitado
             if(vetorCidades[k].visitado == 0){
 
 
-
+                //vou passando por todas as posições do ciclo
                 for(int pos = 0; pos < tamCiclo; pos++){
 
+                    //pego a cidade na posicao pos
                     int i = resultadoFinal[pos];
                     int j;
 
@@ -254,7 +265,7 @@ double heuristicaInsercaoBarata(Cidade *vetorCidades, double **matrizDistancia, 
                     double delta = matrizDistancia[i][k] + matrizDistancia[k][j] - matrizDistancia[i][j];
 
                     if(delta < melhorDelta){
-
+                        //salvo a cidade e a posição
                         melhorDelta = delta;
                         melhorCidade = k;
                         melhorPosicao = pos;
@@ -267,6 +278,7 @@ double heuristicaInsercaoBarata(Cidade *vetorCidades, double **matrizDistancia, 
             }
 
         }
+        //empurro todos os valores para colocar na posição certa
         for(int m = tamCiclo; m > melhorPosicao + 1; m--){
             resultadoFinal[m] = resultadoFinal[m - 1];
         }
@@ -278,7 +290,7 @@ double heuristicaInsercaoBarata(Cidade *vetorCidades, double **matrizDistancia, 
     }
 
     double soma = 0;
-
+    //Depois da inserção eu coloco eu calculo a distancia
     for(int i = 0; i < CIDADES -1; i++){
 
         soma += matrizDistancia[resultadoFinal[i]][resultadoFinal[i + 1]];
