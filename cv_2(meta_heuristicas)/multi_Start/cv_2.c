@@ -155,7 +155,7 @@ double calcularLimiteInferior(Cidade *vetorCidades, int caminho[], int nivel, do
     }
 
     if(menorSaidaUltima != DBL_MAX){
-        limite += menorSaidaUltima;
+       limite += menorSaidaUltima;
     }
 
     // para cada cidade não visitada, soma sua menor saída
@@ -184,12 +184,8 @@ double calcularLimiteInferior(Cidade *vetorCidades, int caminho[], int nivel, do
             }
         }
     }
+    limite+=menorRetorno;
 
-    //Não estou considerando o retorno, porque pode levar a um valor acima do ideal, visto que eu estou somando mais acima do que o ideal
-
-    if(menorRetorno != DBL_MAX){
-       // limite += menorRetorno;
-    }
 
     return limite;
 }
@@ -236,35 +232,61 @@ double vizinhoMaisProximo(Cidade *vetorCidades, double **matrizDistancia, int *r
 
 double multiStart(Cidade *vetorCidades, double **matrizDistancia, int *resultadoFinal){
     int *rotaAtual = malloc(sizeof(int) * CIDADES);
-
+    int *vetAux = malloc(sizeof(int) * CIDADES);
+    vetAux[0] = 0;
     rotaAtual[0] = 0;
     vetorCidades[0].visitado = 1;
     double melhorCusto = DBL_MAX;
 
     for(int i = 1; i < CIDADES ; i++){
-
-        vetorCidades[i].visitado = 1;
             
         for (int j = 1; j < CIDADES; j++) {
+            vetAux[j] = -1;
             rotaAtual[j] = -1;
             vetorCidades[j].visitado = 0;
         }
+        vetAux[1] = i;
         rotaAtual[1] = i;
         vetorCidades[i].visitado = 1;
-        double valor = vizinhoMaisProximo(vetorCidades, matrizDistancia, rotaAtual, 2);
 
+        vizinhoMaisProximo(vetorCidades, matrizDistancia, rotaAtual, 2);
         twoopt(vetorCidades, matrizDistancia, rotaAtual);
+        double vmP = calcularCusto(matrizDistancia, rotaAtual);
 
-        double custo = calcularCusto(matrizDistancia, rotaAtual);
+        for(int j = 1; j < CIDADES; j++){
+            if(j != i){
+                vetorCidades[j].visitado = 0;
+
+            }
+        }
+
+        heuristicaInsercaoBarata(vetorCidades, matrizDistancia, vetAux, 2);
+        twoopt(vetorCidades, matrizDistancia, vetAux);
+        double Insercao = calcularCusto(matrizDistancia, vetAux);
+        double custo;
+        int vmOuIns;
+
+        if(vmP < Insercao){
+            printf("Vmp\n");
+            custo = vmP;
+            vmOuIns = 1;
+        }else{
+            printf("Insercao\n");
+            custo = Insercao;
+            vmOuIns = 0;
+        }
 
         if(custo < melhorCusto){
             melhorCusto = custo;
+            printf("Custo: %lf\n", melhorCusto);
+            if(vmOuIns == 1){
+                for(int j = 0; j < CIDADES; j++){
+                    resultadoFinal[j] = rotaAtual[j];
 
-            for(int j = 0; j < CIDADES; j++){
-
-                resultadoFinal[j] = rotaAtual[j];
+                }
 
             }
+
 
         }
 
@@ -333,3 +355,96 @@ double calcularCusto(double **matrizDistancia, int *resultado){
 
 
 }
+
+
+void heuristicaInsercaoBarata(Cidade *vetorCidades, double **matrizDistancia, int *resultadoFinal, int nivel){
+
+
+
+
+    //Como nesse código eu preciso de um ciclo mínimo, no caso de 2 cidades, 
+    //eu vou pegar a primeira e também a mais próxima da primeira
+    //resultadoFinal[0] = 0;
+    //vetorCidades[0].visitado = 1;
+    //double menosDist = matrizDistancia[0][1];
+    //int cidade = 1;
+    //apenas  acho a cidade mais proxima da primeira
+    //for(int i = 2; i < CIDADES; i++){
+
+    //    if(matrizDistancia[0][i] < menosDist){
+
+    //        menosDist = matrizDistancia[0][i];
+    //        cidade = i;
+
+    //    }
+
+
+    //}
+    //vetorCidades[cidade].visitado = 1;
+    //resultadoFinal[1] = cidade;
+    int tamCiclo = nivel;
+    //coloco a cidade 0 e a mais proxima dela no ciclo e começo
+
+    //Enquanto o ciclo for menor que o numero de cidades total
+    while(tamCiclo < CIDADES){
+
+        //variáveis para eu achar a melhor cidade na melhor posição
+        int melhorCidade = -1;
+        int melhorPosicao = -1;
+        double melhorDelta = DBL_MAX;
+
+        for(int k = 0; k < CIDADES; k++){
+
+            //se não tiver sido visitado
+            if(vetorCidades[k].visitado == 0){
+
+
+                //vou passando por todas as posições do ciclo
+                for(int pos = 0; pos < tamCiclo; pos++){
+
+                    //pego a cidade na posicao pos
+                    int i = resultadoFinal[pos];
+                    int j;
+
+                    if(pos == tamCiclo - 1){
+
+                        j = resultadoFinal[0];
+
+                    }else{
+
+                        j = resultadoFinal[pos+1];
+
+                    }
+
+                    //Eu vou inserir entre o i e o j, nesse caso eu estou tentando calcular o acréscimo da distância, subtraindo pela distancia
+                    //entre o i e o j, que era o que estava antes
+                    double delta = matrizDistancia[i][k] + matrizDistancia[k][j] - matrizDistancia[i][j];
+
+                    if(delta < melhorDelta){
+                        //salvo a cidade e a posição
+                        melhorDelta = delta;
+                        melhorCidade = k;
+                        melhorPosicao = pos;
+
+                    }
+
+                }
+
+
+            }
+
+        }
+        //empurro todos os valores para colocar na posição certa
+        for(int m = tamCiclo; m > melhorPosicao + 1; m--){
+            resultadoFinal[m] = resultadoFinal[m - 1];
+        }
+
+        resultadoFinal[melhorPosicao + 1] = melhorCidade;
+        vetorCidades[melhorCidade].visitado = 1;
+        tamCiclo++;
+
+    }
+
+}
+
+

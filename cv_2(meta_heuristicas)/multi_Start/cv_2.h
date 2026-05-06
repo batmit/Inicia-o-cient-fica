@@ -1,7 +1,7 @@
 #ifndef CV_2_H
 #define CV_2_H
 
-#define CIDADES 12
+#define CIDADES 16
 #include <ncurses.h>
 
 typedef struct cidade Cidade;
@@ -25,7 +25,7 @@ void animarRota(PontoTela *pts, int *rota, int n, int fecharCiclo);
 void desenharLinhaAnimada(int x0, int y0, int x1, int y1, chtype ch, int atraso);
 double calcularLimiteInferior(Cidade *vetorCidades, int caminho[], int nivel,
                              double custoAtual, double **matrizDistancia);
-
+void heuristicaInsercaoBarata(Cidade *vetorCidades, double **matrizDistancia, int *resultadoFinal, int nivel);
 double multiStart(Cidade *vetorCidades,double **matrizDistancia, int *resultadoFinal);
 
 double vizinhoMaisProximo(Cidade *vetorCidades, double **matrizDistancia, int* resultadoFinal, int posicaoInicial);

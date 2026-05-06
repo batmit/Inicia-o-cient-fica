@@ -3,7 +3,6 @@
 #include "cv_1.h"
 #include<math.h>
 #include<float.h>
-#include <ncurses.h>
 
 //Teremos a função gulosa que usa a heurística de inserção mais barata para inicializar, e usa branch and bound para podar todas que forem maior do que o valor dela
 
@@ -99,6 +98,7 @@ void branchAndBound(Cidade *vetorCidades, int nivel, int caminho[], double custo
 
     //se estiver cheio
     if(nivel == CIDADES){
+        //Custo atual + o da volta
         double custoTotal = custoAtual + matrizDistancia[caminho[nivel - 1]][caminho[0]];
 
         if(custoTotal < *melhorCusto){
