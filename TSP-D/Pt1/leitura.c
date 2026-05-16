@@ -21,42 +21,7 @@ static void liberarInstancia(InstanciaTSPD *inst) {
     inst->n = 0;
 }
 
-static void ignorarComentario(FILE *arquivo) {
-    int anterior = 0;
-    int atual;
 
-    while ((atual = fgetc(arquivo)) != EOF) {
-        if (anterior == '*' && atual == '/') {
-            return;
-        }
-
-        anterior = atual;
-    }
-}
-
-static int lerProximoToken(FILE *arquivo, char *token, int tamanho) {
-    int c;
-
-    while ((c = fgetc(arquivo)) != EOF) {
-        if (c == '/') {
-            int prox = fgetc(arquivo);
-
-            if (prox == '*') {
-                ignorarComentario(arquivo);
-                continue;
-            } else {
-                ungetc(prox, arquivo);
-                ungetc(c, arquivo);
-            }
-        }
-
-        if (fscanf(arquivo, "%63s", token) == 1) {
-            return 1;
-        }
-    }
-
-    return 0;
-}
 
 static int lerTokenIgnorandoComentarios(FILE *arquivo, char *token, int tamanho) {
     int c;
@@ -143,7 +108,6 @@ int lerInstanciaTSPD(const char *nomeArquivo, InstanciaTSPD *inst) {
     }
 
     for (int i = 0; i < inst->n; i++) {
-        inst->podeDrone[i] = 1;
 
         if (!lerTokenIgnorandoComentarios(arquivo, token, sizeof(token))) {
             printf("Erro ao ler latitude da cidade %d.\n", i);
@@ -168,10 +132,18 @@ int lerInstanciaTSPD(const char *nomeArquivo, InstanciaTSPD *inst) {
             return 0;
         }
 
-        /*
-            token contém depot, v1, u2 etc.
-            Por enquanto estamos ignorando o nome.
-        */
+        if (i == 0) {
+            inst->podeDrone[i] = 0; // depósito nunca é atendido por drone
+        }
+        else if (token[0] == 'v' || token[0] == 'V') {
+            inst->podeDrone[i] = 1; // v = pode drone
+        }
+        else if (token[0] == 'u' || token[0] == 'U') {
+            inst->podeDrone[i] = 0; // u = não pode drone
+        }
+        else {
+            inst->podeDrone[i] = 0; // segurança
+        }
     }
 
     fclose(arquivo);

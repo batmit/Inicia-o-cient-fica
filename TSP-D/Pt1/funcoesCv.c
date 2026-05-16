@@ -69,7 +69,6 @@ void branchAndBound( int nivel, int atual, double custoAtual,double *melhorCusto
                 matrizDrone,
                 visitado);
 
-            visitado[prox] = 0;
 
             /*
                 CASO 2:
@@ -79,9 +78,8 @@ void branchAndBound( int nivel, int atual, double custoAtual,double *melhorCusto
 
             for (int k = 1; k < instancia.n; k++) {
 
-                if (!visitado[k] && instancia.podeDrone[k]) {
+                if (!visitado[k]  && k!=prox && instancia.podeDrone[k]) {
 
-                    visitado[prox] = 1;
                     visitado[k] = 1;
 
                     double custoOp = custoOperacaoTSPD(
@@ -111,10 +109,10 @@ void branchAndBound( int nivel, int atual, double custoAtual,double *melhorCusto
                         visitado
                     );
 
-                    visitado[prox] = 0;
                     visitado[k] = 0;
                 }
             }
+            visitado[prox] = 0;
         }
     }
 }
@@ -140,7 +138,7 @@ double vizinhoMaisProximo(double **matrizDistancia, int *resultadoFinal, int pos
 
         resultadoFinal[pos]          = cidade;
         soma                        += distancia;
-        visitado[pos] = 1;
+        visitado[cidade] = 1;
         atual                        = cidade;
     }
 
@@ -218,7 +216,7 @@ SolucaoTSPD construirSolucaoTSPD( int *rota, int n, double **matrizCaminhao, dou
     solucao.quantidadeOperacoes = 0;
 
     solucao.custoTotal = 0.0;
-
+    int ultimoCaminhao = 0;
     int i = 0;
 
     while(i < n - 1) {
@@ -269,7 +267,7 @@ SolucaoTSPD construirSolucaoTSPD( int *rota, int n, double **matrizCaminhao, dou
             solucao.custoTotal += custoOperacaoTSPD( origem, destino, cliente, matrizCaminhao, matrizDrone );
 
             solucao.quantidadeOperacoes++;
-
+            ultimoCaminhao = destino;
             i += 2;
         }
         else {
@@ -285,10 +283,13 @@ SolucaoTSPD construirSolucaoTSPD( int *rota, int n, double **matrizCaminhao, dou
             solucao.quantidadeOperacoes++;
 
             i++;
+            ultimoCaminhao = cliente;
+
         }
     }
-
-    solucao.custoTotal += matrizCaminhao[rota[n - 1]][0];
+    if (ultimoCaminhao != 0) {
+        solucao.custoTotal += matrizCaminhao[ultimoCaminhao][0];
+    }
 
     return solucao;
 }

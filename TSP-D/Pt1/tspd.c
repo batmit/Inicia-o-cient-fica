@@ -32,7 +32,13 @@ int main(){
     Operacao *caminho = malloc(instancia.n * sizeof(Operacao));
     Operacao *melhorCaminho = malloc(instancia.n * sizeof(Operacao));   
 
-    int melhorQtdOperacoes = 0;
+    int melhorQtdOperacoes = solucaoInicial.quantidadeOperacoes;
+
+    memcpy(
+        melhorCaminho,
+        solucaoInicial.operacoes,
+        melhorQtdOperacoes * sizeof(Operacao)
+    );
 
     int *visitado = calloc(instancia.n, sizeof(int));
 
@@ -57,7 +63,7 @@ int main(){
 
     printf("Operacoes:\n");
 
-    for (int i = 0; i < melhorQtdOperacoes; i++) {
+    for (int i = 0; i < instancia.n - 1; i++) {
 
         if (melhorCaminho[i].drone == -1) {
             printf(
@@ -74,6 +80,21 @@ int main(){
             );
         }
     }
+
+
+    for(int i = 0; i < instancia.n; i++){
+
+        free(matrizCaminhao[i]);
+        free(matrizDrone[i]);
+
+    }
+
+    free(matrizCaminhao);
+    free(matrizDrone);
+    free(caminho);
+    free(melhorCaminho);
+    free(visitado);
+
 
     return 0;
 
