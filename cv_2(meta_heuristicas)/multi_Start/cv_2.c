@@ -3,7 +3,6 @@
 #include "cv_2.h"
 #include<math.h>
 #include<float.h>
-#include <ncurses.h>
 
 
 //Utilizarei o multi start com o vizinho mais próximo como inicial e logo após 
@@ -23,7 +22,11 @@ int main(){
     Cidade *vetorCidades = malloc(CIDADES* sizeof(Cidade));
     int *caminho = malloc(CIDADES * sizeof(int));
     int *resultadoFinal = malloc(CIDADES * sizeof(int));
-
+    int **vizinhosOrdenados = malloc(CIDADES * sizeof(int*));
+    for(int i = 0; i < CIDADES; i++){
+        vizinhosOrdenados[i] = malloc(CIDADES * sizeof(int));
+        vizinhosOrdenados[i][0] = i;
+    }
     //Apenas lerei os valores e colocarei o identificador em cada Cidade
     for(int i = 0; i < CIDADES; i++){
         resultadoFinal[i] = 0;
@@ -33,6 +36,7 @@ int main(){
         scanf("%lf", &vetorCidades[i].longitude);
     }
 
+    //Calculos da matriz distancia
     double **matrizDistancia = malloc(CIDADES * sizeof(double*));
     for(int i = 0; i < CIDADES; i++){
 
@@ -45,16 +49,21 @@ int main(){
         }
     }
 
+    ordenarVizinhos(vizinhosOrdenados, vetorCidades, matrizDistancia);
     //terei que fixar a primeira posição da cidade, por questões de complexidad
     caminho[0] = 0;
     vetorCidades[0].visitado = 1;
-    double melhorCusto = multiStart(vetorCidades, matrizDistancia, resultadoFinal);
-
+    int *resultadoParcial = malloc(sizeof(int) * CIDADES);
+    double melhorCusto = multiStart(vetorCidades, matrizDistancia, resultadoParcial);
+    resultadoFinal[0] = resultadoParcial[0];
     for(int i = 1; i < CIDADES; i++){
+        resultadoFinal[i] = resultadoParcial[i];
         vetorCidades[i].visitado = 0;
     }
+    double **matrizReducao = copiarMatriz(matrizDistancia);
+    double limiteRaiz = reduzirMatriz(matrizReducao);
 
-    branchAndBound(vetorCidades, 1, caminho, 0, matrizDistancia, &melhorCusto, resultadoFinal);
+    branchAndBound(vetorCidades, 1, caminho, 0, matrizDistancia, &melhorCusto, resultadoFinal, resultadoParcial, matrizReducao, limiteRaiz, vizinhosOrdenados);
     
     printf("Menor distancia encontrada: %.6lf\n", melhorCusto);
     printf("Caminho: ");
@@ -66,7 +75,7 @@ int main(){
 
 
 
-
+    free(resultadoParcial);
     free(resultadoFinal);
     free(caminho);
     free(vetorCidades);
@@ -76,6 +85,7 @@ int main(){
 
     }
     free(matrizDistancia);
+    liberarMatriz(matrizReducao);
     return 0;
 
 }
@@ -86,7 +96,7 @@ double distanciaEuclidiana(double x1, double y1, double x2, double y2){
     double  resposta;
 
 
-    resposta = (pow((x1 - y1), 2)) + (pow((x2 - y2), 2));
+    resposta = ((x1 - y1)*(x1 - y1)) + ((x2 - y2) * (x2 - y2));
     resposta = sqrt(resposta);
 
 
@@ -95,7 +105,7 @@ double distanciaEuclidiana(double x1, double y1, double x2, double y2){
 }
 
 //melhor custo deve ser iniciado com um valor muito alto
-void branchAndBound(Cidade *vetorCidades, int nivel, int caminho[], double custoAtual, double **matrizDistancia, double *melhorCusto, int resultadoFinal[]){
+void branchAndBound(Cidade *vetorCidades, int nivel, int caminho[], double custoAtual, double **matrizDistancia, double *melhorCusto, int resultadoFinal[], int resultadoParcial[], double **matrizAtual, double limiteAtual, int **vizinhosOrdenados){
 
     if(nivel == CIDADES){
         double custoTotal = custoAtual + matrizDistancia[caminho[nivel - 1]][caminho[0]];
@@ -112,26 +122,41 @@ void branchAndBound(Cidade *vetorCidades, int nivel, int caminho[], double custo
     }
 
     for(int i = 1; i < CIDADES; i++){
-
+        
+        int candidato = vizinhosOrdenados[caminho[nivel - 1]][i];
 
         //Se a cidade já não está no caminho
-        if(vetorCidades[i].visitado == 0){
+        if(vetorCidades[candidato].visitado == 0){
 
-            double novoCusto = custoAtual + matrizDistancia[caminho[nivel -1]][i];
+            double **novaMatriz = copiarMatriz(matrizAtual);
+            for(int k = 0; k < CIDADES; k++){
+                novaMatriz[caminho[nivel-1]][k] = DBL_MAX; // linha
+                novaMatriz[k][candidato] = DBL_MAX;               // coluna
+            }
+            // Evita subciclo prematuro
+            novaMatriz[candidato][caminho[0]] = DBL_MAX;
+            double custaAresta = matrizAtual[caminho[nivel -1]][candidato];
+            double reducao = reduzirMatriz(novaMatriz);
 
-            caminho[nivel] = i;
-            vetorCidades[i].visitado = 1;
-            double limite = calcularLimiteInferior(vetorCidades, caminho, nivel + 1, novoCusto, matrizDistancia);
-            if(limite <  *melhorCusto){
-                branchAndBound(vetorCidades, nivel + 1, caminho, novoCusto, matrizDistancia, melhorCusto, resultadoFinal);
+            double novoLimite = limiteAtual + custaAresta + reducao;
+            
+            
+            double novoCusto = custoAtual + matrizDistancia[caminho[nivel -1]][candidato];
+
+            //caminho[nivel] = resultadoParcial[i];
+            //vetorCidades[resultadoParcial[i]].visitado = 1;
+            //double limite = calcularLimiteInferior(vetorCidades, caminho, nivel + 1, novoCusto, matrizDistancia);
+            if(novoLimite <  *melhorCusto){
+                caminho[nivel] = candidato;
+                vetorCidades[resultadoParcial[i]].visitado = 1;
+                branchAndBound(vetorCidades, nivel + 1, caminho, novoCusto, matrizDistancia, melhorCusto, resultadoFinal, resultadoParcial, novaMatriz, novoLimite, vizinhosOrdenados);
+            
+                vetorCidades[resultadoParcial[i]].visitado = 0;
+                caminho[nivel] = -1;
             }
 
-            vetorCidades[i].visitado = 0;
-            caminho[nivel] = -1;
-
+            liberarMatriz(novaMatriz);
         }
-
-
 
 
     }
@@ -285,6 +310,12 @@ double multiStart(Cidade *vetorCidades, double **matrizDistancia, int *resultado
 
                 }
 
+            }else{
+                for(int j = 0; j < CIDADES; j++){
+                    resultadoFinal[j] = vetAux[j];
+
+                }
+
             }
 
 
@@ -294,7 +325,7 @@ double multiStart(Cidade *vetorCidades, double **matrizDistancia, int *resultado
     }
 
     free(rotaAtual);
-
+    free(vetAux);
     return melhorCusto;
 
 }
@@ -448,3 +479,95 @@ void heuristicaInsercaoBarata(Cidade *vetorCidades, double **matrizDistancia, in
 }
 
 
+void ordenarVizinhos(int **vizinhosOrdenados, Cidade *vetorCidades, double **matrizDistancia){
+
+    for(int i = 0; i < CIDADES; i++){
+
+        for(int j = 1; j < CIDADES; j++){
+            int nearer;
+            for(int w = 0; w < CIDADES; w++){
+                if(vetorCidades[w].visitado == 0 && w != i){
+
+                    nearer = w;
+                    break;
+
+                }
+            }
+            
+            for(int z = 0; z < CIDADES; z++){
+
+                if(matrizDistancia[i][nearer] > matrizDistancia[i][z] && vetorCidades[z].visitado == 0 && z != i){
+
+                    nearer = z;
+
+                }
+
+
+            }
+
+            vizinhosOrdenados[i][j] = nearer;
+            vetorCidades[nearer].visitado = 1;
+
+
+        }
+
+        for(int j = 0; j < CIDADES; j++){
+
+            vetorCidades[j].visitado = 0;
+
+        }
+
+    }
+
+
+}
+
+double reduzirMatriz(double **m){
+    double total = 0;
+
+    // Redução de linhas
+    for(int i = 0; i < CIDADES; i++){
+        double minVal = DBL_MAX;
+        for(int j = 0; j < CIDADES; j++)
+            if(m[i][j] < minVal) minVal = m[i][j];
+        if(minVal != DBL_MAX && minVal > 0){
+            for(int j = 0; j < CIDADES; j++)
+                if(m[i][j] != DBL_MAX) m[i][j] -= minVal;
+            total += minVal;
+        }
+    }
+
+    // Redução de colunas
+    for(int j = 0; j < CIDADES; j++){
+        double minVal = DBL_MAX;
+        for(int i = 0; i < CIDADES; i++)
+            if(m[i][j] < minVal) minVal = m[i][j];
+        if(minVal != DBL_MAX && minVal > 0){
+            for(int i = 0; i < CIDADES; i++)
+                if(m[i][j] != DBL_MAX) m[i][j] -= minVal;
+            total += minVal;
+        }
+    }
+
+    return total;
+}
+
+double **copiarMatriz(double **original) {
+    double **copia = malloc(CIDADES * sizeof(double *));
+    
+    for (int i = 0; i < CIDADES; i++) {
+        copia[i] = malloc(CIDADES * sizeof(double));
+        for (int j = 0; j < CIDADES; j++) {
+            copia[i][j] = original[i][j];
+        }
+    }
+    
+    return copia;
+}
+
+void liberarMatriz(double **matriz) {
+    for (int i = 0; i < CIDADES; i++) {
+        free(matriz[i]);
+    }
+    free(matriz);
+}
