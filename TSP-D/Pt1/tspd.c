@@ -63,7 +63,7 @@ int main(){
 
     printf("Operacoes:\n");
 
-    for (int i = 0; i < instancia.n - 1; i++) {
+    for (int i = 0; i < melhorQtdOperacoes; i++) {
 
         if (melhorCaminho[i].drone == -1) {
             printf(
