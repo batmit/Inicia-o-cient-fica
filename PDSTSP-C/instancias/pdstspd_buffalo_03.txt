@@ -1,0 +1,14 @@
+/* Fonte: optimatorlab/mFSTSP, problema 20170608T121956644648. */
+/* Adaptacao: fatores normalizados; 3 drones; capacidade de 5 lb. */
+/* fator_caminhao fator_drone numero_drones numero_nos */
+1.0 0.5 3 9
+/* latitude longitude tipo */
+42.909116 -78.868838 depot
+42.920783 -78.878596 u1
+42.903083 -78.847242 v2
+42.923855 -78.889880 u3
+42.917406 -78.862300 v4
+42.895138 -78.847186 v5
+42.929074 -78.869035 v6
+42.925835 -78.892888 v7
+42.924638 -78.857830 v8
