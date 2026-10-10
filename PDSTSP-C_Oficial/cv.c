@@ -7,6 +7,7 @@
 
 void construirMatrizCaminhao(Instancia *inst){
 
+    alocarMatrizCaminhao(inst);
     //No PDSTSP-C o caminhão utiliza distância manhathan
     //A distância dos drones é sim euclidiana
     for (int i = 0; i < inst->n; i++) {
@@ -19,11 +20,34 @@ void construirMatrizCaminhao(Instancia *inst){
             double dy = fabs(inst->clientes[i].y -
                              inst->clientes[j].y);
 
-            inst->tempoCaminhao[i][j] = (dx + dy)/ inst->truckSpeed;
+            inst->tempoCaminhao[i][j] = (dx + dy)/ inst->truckSpeed * 60.0;
         }
     }
 
 
+}
+
+
+int alocarMatrizCaminhao(Instancia *inst)
+{
+    inst->tempoCaminhao = calloc(
+        inst->n, sizeof(double *)
+    );
+
+    if (inst->tempoCaminhao == NULL)
+        return 0;
+
+    for (int i = 0; i < inst->n; i++)
+    {
+        inst->tempoCaminhao[i] = malloc(
+            inst->n * sizeof(double)
+        );
+
+        if (inst->tempoCaminhao[i] == NULL)
+            return 0;
+    }
+
+    return 1;
 }
 
 void alocarTempoDrone(Instancia *inst)
@@ -62,4 +86,6 @@ void alocarTempoDrone(Instancia *inst)
         }
     }
 }
+
+//BREACH AND BOUND
 
